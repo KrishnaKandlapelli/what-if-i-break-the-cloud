@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Binaries / build output
+breaking-the-cloud
+*.exe
+*.test
