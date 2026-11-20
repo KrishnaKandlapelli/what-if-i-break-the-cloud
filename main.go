@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag" // pass -id and -port from the terminal instead of hardcoding
 	"fmt"
 	"log"
 	"net"
@@ -30,13 +31,14 @@ func (n *NodeRPC) RequestVote(args *VoteRequestArgs, reply *VoteResponseReply) e
 }
 
 func main() {
-	nodeID := 1
-	port := 8001
+	nodeID := flag.Int("id", 1, "Node ID")
+	port := flag.Int("port", 8001, "Port to listen on")
+	flag.Parse()
 
 	// Initialising the node 
 	//
 	myNode := &Node{
-		NodeID:        nodeID,
+		NodeID:        *nodeID,
 		Nodes:         []int{1, 2, 3},
 		CurrentTerm:   0,
 		VotedFor:      nil,
@@ -52,13 +54,15 @@ func main() {
 	// Register RPC server
 	//
 	nodeRPC := &NodeRPC{ServerNode: myNode}
-	rpc.Register(nodeRPC)
+	if err := rpc.Register(nodeRPC); err != nil {
+		log.Fatalf("Failed to register RPC server: %v", err)
+	}
 	rpc.HandleHTTP()
 
-	addr := fmt.Sprintf("localhost:%d", port)
+	addr := fmt.Sprintf("localhost:%d", *port)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("Failed to bind to port %d: %v", port, err)
+		log.Fatalf("Failed to bind to port %d: %v", *port, err)
 	}
 
 	fmt.Printf("[Node %d] Initialised as %s. RPC Server listening on %s\n", 
